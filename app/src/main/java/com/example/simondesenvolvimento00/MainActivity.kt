@@ -31,7 +31,15 @@ import com.example.simondesenvolvimento00.ui.theme.SimonDesenvolvimento00Theme
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
+import kotlin.Int
+import kotlin.collections.MutableList
+import kotlin.random.Random
 
+val ESTADOINICIAL = EstadoJogo(
+    sequencia= mutableListOf(4,3,2,1),
+    ultimo=3
+)
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -66,19 +74,27 @@ fun GreetingPreview() {
     }
 }
 
+data class EstadoJogo(
+    var sequencia:MutableList<Int>,
+    var ultimo:Int
+)
+
 @Composable
 fun jogoGenius(){
     var texto: String
     var rodando by remember { mutableStateOf(true) }
     val game = remember { Game(
-                onAndaPara = { if (rodando) rodando = false}
+//                onAndaPara = { if (rodando) rodando = !rodando },
+                onAndaPara = { rodando = it },
+                rodando = rodando
             )
     }
     if (rodando){
-        LaunchedEffect(Unit) {
+        LaunchedEffect( game) {
             coroutineScope {
-                launch{game.roda()}
+                launch { game.roda() }
             }
+            rodando = false
         }
     }
     Column(
@@ -87,11 +103,33 @@ fun jogoGenius(){
         horizontalAlignment = Alignment.CenterHorizontally
     ){
         Spacer(modifier = Modifier.height(50.dp))
-        texto = "Tamanho: ${game.contador}"
+        texto = "Tamanho: ${game.tocando}"
         Text(
             text = texto, color = Color.Blue, fontSize = 24.sp,
             modifier = Modifier.padding(bottom = 16.dp)
             )
+        texto = "Contateste: ${game.contateste}"
+        Text(
+            text = texto, color = Color.Blue, fontSize = 24.sp,
+            modifier = Modifier.padding(bottom = 16.dp)
+        )
+        texto = "Sequencia: ${game.estadoAtual.sequencia}"
+        Text(
+            text = texto, color = Color.Blue, fontSize = 24.sp,
+            modifier = Modifier.padding(bottom = 16.dp)
+        )
+        Button(onClick = { game.onTeclado(1) }) {
+            Text(text = "1")
+        }
+        Button(onClick = { game.onTeclado(2) }) {
+            Text(text = "2")
+        }
+        Button(onClick = { game.onTeclado(3) }) {
+            Text(text = "3")
+        }
+        Button(onClick = { game.onTeclado(4) }) {
+            Text(text = "4")
+        }
         Button(
             onClick = { rodando = (!rodando)},
             modifier = Modifier.fillMaxWidth()
@@ -102,18 +140,66 @@ fun jogoGenius(){
 
 }
 
-class Game(onAndaPara: () -> Unit){
+class Game(estadoJogo: EstadoJogo = ESTADOINICIAL,
+           onAndaPara: (Boolean) -> Unit,rodando: Boolean = true){
+
     var contador by mutableStateOf( 0 )
+        private set
+    var estadoAtual by mutableStateOf(estadoJogo)
+    var tocando by mutableStateOf(0)
+    var contateste by mutableStateOf( 0 )
     var onAndaPara by mutableStateOf(onAndaPara)
-    private set
-    suspend fun roda() {
+        private set
+    var minhaVez by mutableStateOf(true)
+
+    suspend fun roda(){
         while (true) {
-            delay(500)
-            contador++
-            if (contador == 10) {
-                onAndaPara()
-                contador = 0
+            if (minhaVez) {
+                estadoAtual.sequencia.forEach { numero ->
+                    coroutineScope {
+                        tocando = numero
+                        delay(700)
+                    }
+                }
+                minhaVez = false
             }
+            delay(700)
+            onAndaPara(false)
+            contateste=0
         }
+    }
+
+    fun onTeclado(digito: Int) {
+        if (digito == estadoAtual.sequencia[contateste]) {
+            contateste++
+            if (contateste >= estadoAtual.sequencia.size) {
+                estadoAtual.sequencia.add(Random.nextInt(1, 5))
+                contateste = 0
+                onAndaPara(true)
+                minhaVez = true
+            }
+        }else{
+            contateste = 0
+            tocando =99999
+            estadoAtual= ESTADOINICIAL
+            minhaVez = true
+            onAndaPara(false)
+   //
+        }
+
+    }
+    fun reset() {
+         estadoAtual= ESTADOINICIAL
+        contador = 0
+        tocando = 0
+        contateste=0
+        onAndaPara(false)
+    }
+    companion object{
+        const val BOARD_SIZE = 16
+        val ESTADOINICIAL = EstadoJogo(
+             sequencia= mutableListOf(4,3,2,1),
+             ultimo=3
+        )
     }
 }
