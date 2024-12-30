@@ -46,8 +46,8 @@ import kotlin.collections.MutableList
 import kotlin.random.Random
 
 val ESTADOINICIAL = EstadoJogo(
-    sequencia= mutableListOf(4,3,2,1),
-    ultimo=3
+    sequencia= mutableListOf(1),
+    ultimo=0
 )
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -121,6 +121,11 @@ fun jogoGenius(){
         ) {
             Spacer(modifier = Modifier.height(50.dp))
             texto = "Tocando: ${game.tocando}"
+            if (game.tocando == 99999){
+                texto = "Perdeu"
+            }else{
+                texto = "Contador: ${game.estadoAtual.sequencia.size}"
+            }
             Text(
                 text = texto, color = Color.Blue, fontSize = 24.sp,
                 modifier = Modifier.padding(bottom = 16.dp)
@@ -183,6 +188,7 @@ fun jogoGenius(){
 
             Button(
                 onClick = { rodando = (!rodando) },
+                enabled = !rodando,
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Text(text = "Clique")
@@ -237,6 +243,7 @@ class Game(estadoJogo: EstadoJogo = ESTADOINICIAL,
                 minhaVez = true
             }
         }else{
+            toneGenerator.startTone(86,500)
             contateste = 0
             tocando =99999
             estadoAtual.sequencia.clear()
@@ -257,8 +264,8 @@ class Game(estadoJogo: EstadoJogo = ESTADOINICIAL,
     companion object{
         const val BOARD_SIZE = 16
         val ESTADOINICIAL = EstadoJogo(
-             sequencia= mutableListOf(4,3,2,1),
-             ultimo=3
+             sequencia= mutableListOf(1),
+             ultimo=0
         )
     }
 }
