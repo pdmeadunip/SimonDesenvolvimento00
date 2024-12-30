@@ -169,6 +169,7 @@ class Game(estadoJogo: EstadoJogo = ESTADOINICIAL,
                 minhaVez = false
             }
             delay(700)
+            tocando = 0
             onAndaPara(false)
             contateste=0
         }
