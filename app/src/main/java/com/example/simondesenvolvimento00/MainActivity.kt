@@ -1,5 +1,7 @@
 package com.example.simondesenvolvimento00
 
+import android.media.AudioManager
+import android.media.ToneGenerator
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -151,12 +153,15 @@ class Game(estadoJogo: EstadoJogo = ESTADOINICIAL,
     var onAndaPara by mutableStateOf(onAndaPara)
         private set
     var minhaVez by mutableStateOf(true)
+    val toneGenerator =  ToneGenerator(AudioManager.STREAM_MUSIC, 50)
 
     suspend fun roda(){
         while (true) {
+            delay(700)
             if (minhaVez) {
                 estadoAtual.sequencia.forEach { numero ->
                     coroutineScope {
+                        toneGenerator.startTone(numero,1000)
                         tocando = numero
                         delay(700)
                     }
@@ -170,6 +175,7 @@ class Game(estadoJogo: EstadoJogo = ESTADOINICIAL,
     }
 
     fun onTeclado(digito: Int) {
+        toneGenerator.startTone(digito,300)
         if (digito == estadoAtual.sequencia[contateste]) {
             contateste++
             if (contateste >= estadoAtual.sequencia.size) {
@@ -181,7 +187,8 @@ class Game(estadoJogo: EstadoJogo = ESTADOINICIAL,
         }else{
             contateste = 0
             tocando =99999
-            estadoAtual= ESTADOINICIAL
+            estadoAtual.sequencia.clear()
+            estadoAtual.sequencia.add(Random.nextInt(1, 5))
             minhaVez = true
             onAndaPara(false)
    //
